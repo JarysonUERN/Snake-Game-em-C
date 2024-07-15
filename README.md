@@ -1,0 +1,1 @@
+O código apresenta a minha abordagem individual para a implementação do clássico jogo da cobrinha em C, utilizando principalmente uma lógica binária para a manipulação da cobra. Uma versão com Allegro do jogo será postada em breve.
