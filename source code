@@ -1,0 +1,248 @@
+#include <stdio.h>
+#include <stdbool.h>
+#include <stdlib.h>
+#include <locale.h>
+#include <conio.h>
+#include <windows.h> // Para a função Sleep()
+#include <time.h>
+#ifdef _WIN32
+#define CLEAR_SCREEN "cls"
+#else
+#define CLEAR_SCREEN "clear"
+#endif
+#define CIANO  "\x1B[36m"
+#define GREEN "\x1B[32m"
+#define BLUE "\x1B[34m"
+#define RED "\x1B[31m"
+#define YELLOW "\x1B[33m"
+#define MAGENTA "\x1B[35m"
+#define RESET_COLOR "\x1B[0m"
+#define COL 20
+#define LIN 10
+#define MAX_COBRA COL * LIN
+
+
+typedef struct {
+    int posicao_vetor_linha;
+    int posicao_vetor_coluna;
+} Food;
+int i = 0;
+typedef struct {
+    int linha;
+    int coluna;
+} Segment;
+
+Food food;
+void comida(Segment *cobra, int corpoSize) { 
+    bool posicao_ocupada;
+    do {
+        posicao_ocupada = false;
+        food.posicao_vetor_linha = rand() % LIN;
+        food.posicao_vetor_coluna = rand() % COL;
+
+        // Verifica se a posição gerada está ocupada pelo corpo da cobra
+        for (i = 0; i < corpoSize; i++) {
+            if (cobra[i].linha == food.posicao_vetor_linha && cobra[i].coluna == food.posicao_vetor_coluna) {
+                posicao_ocupada = true;
+                break;
+            }
+        }
+    } while (posicao_ocupada || 
+             (food.posicao_vetor_coluna == 0) || 
+             (food.posicao_vetor_coluna == COL - 1) || 
+             (food.posicao_vetor_linha == 0) || 
+             (food.posicao_vetor_linha == LIN - 1));
+}
+
+
+int main() {
+    setlocale(LC_ALL, "Portuguese_Brazil.1252");
+    bool randfood[LIN][COL], colisao = false;
+    int life = 5, score = 0, corpoSize = 1, i, j, x, y, prev_i, prev_j, k, corcorpo;
+    char teclado = 'o', key, keystored = 'o';
+    Segment cobra[MAX_COBRA];
+      srand(time(NULL));
+
+    // Inicialização da matriz food
+    for (i = 0; i < LIN; i++) {
+        for (j = 0; j < COL; j++) {
+            randfood[i][j] = false; 
+        }
+    }
+    // Definindo posição inicial da cabeça no meio da matriz
+    cobra[0].linha = LIN / 2;
+    cobra[0].coluna = COL / 2;
+    comida(cobra, corpoSize);  
+    randfood[food.posicao_vetor_linha][food.posicao_vetor_coluna] = true;
+    // Loop para o movimento da cabeça do jogador enquanto a vida for maior que zero
+    while (life >= 0) {
+        system("cls");
+        // Exibição da cabeça e do corpo do jogador na matriz
+        for (x = 0; x < LIN; x++) {
+            for (y = 0; y < COL; y++) {
+                bool isBody = false;
+
+
+                
+                for (corcorpo = 0; corcorpo <= corpoSize; corcorpo++) {
+                    if (cobra[corcorpo].linha == x && cobra[corcorpo].coluna == y) {
+                        if (corcorpo == 0) {
+                            printf(GREEN "X" RESET_COLOR);
+                        } else {
+                            switch (corcorpo % 6) {
+                                case 0: printf(RED "+" RESET_COLOR); break;
+                                case 1: printf(YELLOW "+" RESET_COLOR); break;
+                                case 2: printf(BLUE "+" RESET_COLOR); break;
+                                case 3: printf(MAGENTA "+" RESET_COLOR); break;
+                                case 4: printf(CIANO "+" RESET_COLOR); break;
+                                case 5: printf(GREEN "+" RESET_COLOR); break;
+                            }
+                        }
+                        isBody = true;
+                        break;
+                    }
+                }
+
+
+                void comida();
+
+                if (!isBody) {
+                    if (randfood[x][y]) {
+                        printf(CIANO "0" RESET_COLOR);
+                    } else if (x == 0 || x == LIN - 1 || y == 0 || y == COL - 1) {
+                        printf(RED  "#" RESET_COLOR);    
+                    } else {
+                        printf(GREEN " " RESET_COLOR);
+                    }
+                }
+            }
+            printf("\n");
+        }
+            while (teclado != 'w' && teclado != 'W' && teclado != 'S' && teclado != 's' && teclado != 'A' && teclado != 'a' && teclado != 'd' && teclado != 'D'){
+            printf (YELLOW "Pressione 'w', 's', 'd' ou 'a' para começar. \n");
+            teclado =  getch();
+            }
+        // Resposta do teclado
+        if (colisao){
+            printf (CIANO "Você colidiu. Você tem %d vidas restantes. \n" RESET_COLOR, life);
+            colisao = false;
+        }
+        printf (CIANO "Score: %d\n" RESET_COLOR, score);
+
+        // Aguardar 0.4 segundos antes de verificar a entrada do teclado novamente
+        Sleep(400);
+
+        if (_kbhit()) {
+            teclado = getch();
+            switch (teclado) {
+                case 'W':
+                case 'w':
+                    if (cobra[0].linha > 0) {
+                        if(keystored == 's' || keystored == 'S'){
+                            break;
+                        }
+                        
+                         else{
+                        key = 'w';
+                        keystored = 'W';
+                        }
+
+                    }
+                    break;
+                case 'S':
+                case 's':
+                    if (cobra[0].linha < LIN - 1) {
+                           if(keystored == 'w' || keystored == 'W'){
+                            break;
+                        }
+                        else{
+                        key = 's';
+                        keystored = 's';
+                        }
+                    }
+                    break;
+                case 'A':
+                case 'a':
+                    if (cobra[0].coluna > 0) {
+                           if(keystored == 'd' || keystored == 'D'){
+                            break;
+                        }
+                         else{
+                        key = 'a';
+                        keystored = 'a';
+                        }
+                    }
+                    break;
+                case 'D':
+                case 'd':
+                    if (cobra[0].coluna < COL - 1) {
+                           if(keystored == 'a' || keystored == 'A'){
+                            break;
+                        }
+                         else{
+                        key = 'd';
+                        keystored = 'd';
+                        }
+                        
+                    }
+                    break;
+                default:
+                    break;
+            }
+        }
+
+        // Movimento da cabeça e do corpo da cobra
+        prev_i = cobra[0].linha;
+        prev_j = cobra[0].coluna;
+
+        if (key == 'w') cobra[0].linha--;
+        else if (key == 's') cobra[0].linha++;
+        else if (key == 'a') cobra[0].coluna--;
+        else if (key == 'd') cobra[0].coluna++;
+
+        // Movimento do corpo
+        for (k = 1; k <= corpoSize; k++) {
+            int temp_i = cobra[k].linha;
+            int temp_j = cobra[k].coluna;
+            cobra[k].linha = prev_i;
+            cobra[k].coluna = prev_j;
+            prev_i = temp_i;
+            prev_j = temp_j;
+        }
+        // Checagem de colisão com o corpo
+        for (k = 1; k <= corpoSize; k++) {
+            if (cobra[0].linha == cobra[k].linha && cobra[0].coluna == cobra[k].coluna) {
+                colisao = true;
+                life--;
+                cobra[0].linha = LIN / 2;
+                cobra[0].coluna = COL / 2;
+                corpoSize = 0;
+                printf(CIANO "Voce colidiu, tente novamente. \n" RESET_COLOR);
+                teclado = 'o';
+            }
+        }
+         
+        // Checagem de colisão com as bordas
+        if (cobra[0].linha == 0 || cobra[0].linha == LIN - 1 || cobra[0].coluna == 0 || cobra[0].coluna == COL - 1) {
+            colisao = true;
+            life--;
+            cobra[0].linha = LIN / 2;
+            cobra[0].coluna = COL / 2;
+            corpoSize = 0;
+             printf(CIANO "Voce colidiu, tente novamente. \n" RESET_COLOR);
+                teclado = 'o';
+        }
+        // Se comer a comida
+        if (cobra[0].linha == food.posicao_vetor_linha && cobra[0].coluna == food.posicao_vetor_coluna) {
+            randfood[cobra[0].linha][cobra[0].coluna] = false;
+            score += 10;
+            corpoSize++;
+            comida(cobra, corpoSize);
+            randfood[food.posicao_vetor_linha][food.posicao_vetor_coluna] = true;
+        }
+
+        system(CLEAR_SCREEN);
+    }
+    printf("Fim do jogo!\n");
+    return 0;
+}
