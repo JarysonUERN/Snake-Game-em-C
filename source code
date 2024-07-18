@@ -33,7 +33,17 @@ typedef struct {
 } Segment;
 
 Food food;
-void comida(Segment *cobra, int corpoSize) { 
+
+void atualizar_tempo(time_t inicio, int* horas, int* minutos, int* segundos) {
+    time_t agora = time(NULL);
+    int tempo_decorrido = difftime(agora, inicio);
+    
+    *horas = tempo_decorrido / 3600;
+    *minutos = (tempo_decorrido % 3600) / 60;
+    *segundos = tempo_decorrido % 60;
+}
+
+void comida(Segment* cobra, int corpoSize) {
     bool posicao_ocupada;
     do {
         posicao_ocupada = false;
@@ -47,35 +57,91 @@ void comida(Segment *cobra, int corpoSize) {
                 break;
             }
         }
-    } while (posicao_ocupada || 
-             (food.posicao_vetor_coluna == 0) || 
-             (food.posicao_vetor_coluna == COL - 1) || 
-             (food.posicao_vetor_linha == 0) || 
-             (food.posicao_vetor_linha == LIN - 1));
+    } while (posicao_ocupada ||
+        (food.posicao_vetor_coluna == 0) ||
+        (food.posicao_vetor_coluna == COL - 1) ||
+        (food.posicao_vetor_linha == 0) ||
+        (food.posicao_vetor_linha == LIN - 1));
 }
+
+int menu() {
+    int option = 0;
+    char input = '\0';  // Inicializa input para evitar valores indeterminados
+    bool opcoes = true;
+    
+    while (opcoes) {
+        system(CLEAR_SCREEN);
+
+        printf(MAGENTA "=====================\n");
+        printf("     JOGO DA COBRINHA    \n");
+        printf("=====================\n" RESET_COLOR);
+        printf("\n");
+
+        switch (input) {
+            case 'w':
+            case 'W':
+                option = 0;
+                break;
+            case 's':
+            case 'S':
+                option = 1;
+                break;
+        }
+
+        if (option == 0) {
+            printf(GREEN "> Jogar\n" RESET_COLOR);
+            printf("  Sair\n");
+        } else {
+            printf("  Jogar\n");
+            printf(RED "> Sair\n" RESET_COLOR);
+        }
+
+        input = getch();
+
+        if (input == ' ' || input == '\r') {
+            if (option == 0) {
+                opcoes = false;
+            } else if (option == 1) {
+                return  1;
+            }
+        }
+    }
+    return 0;
+}
+
 
 
 int main() {
     setlocale(LC_ALL, "Portuguese_Brazil.1252");
     bool randfood[LIN][COL], colisao = false;
-    int life = 5, score = 0, corpoSize = 1, i, j, x, y, prev_i, prev_j, k, corcorpo;
-    char teclado = 'o', key, keystored = 'o';
+    int life = 5, score = 0, corpoSize = 1, i, j, x, y, prev_i, prev_j, k, corcorpo, horas = 0, minutos = 0, segundos = 0, encerrarounao = menu();
+    char teclado = 'o', key, keystored = 'o', nome[50];
     Segment cobra[MAX_COBRA];
-      srand(time(NULL));
+    srand(time(NULL));
+    time_t inicio = time(NULL);
 
+     
+    if(encerrarounao == 1){
+        life = -1;
+    }
+    else{
+    printf(GREEN "Digite o nome do Jogador.  \n");
+    scanf(" %s", &nome);
+    }
     // Inicialização da matriz food
     for (i = 0; i < LIN; i++) {
         for (j = 0; j < COL; j++) {
-            randfood[i][j] = false; 
+            randfood[i][j] = false;
         }
     }
     // Definindo posição inicial da cabeça no meio da matriz
     cobra[0].linha = LIN / 2;
     cobra[0].coluna = COL / 2;
-    comida(cobra, corpoSize);  
+    comida(cobra, corpoSize);
     randfood[food.posicao_vetor_linha][food.posicao_vetor_coluna] = true;
     // Loop para o movimento da cabeça do jogador enquanto a vida for maior que zero
     while (life >= 0) {
+        atualizar_tempo(inicio, &horas, &minutos, &segundos);
         system("cls");
         // Exibição da cabeça e do corpo do jogador na matriz
         for (x = 0; x < LIN; x++) {
@@ -83,19 +149,20 @@ int main() {
                 bool isBody = false;
 
 
-                
+
                 for (corcorpo = 0; corcorpo <= corpoSize; corcorpo++) {
                     if (cobra[corcorpo].linha == x && cobra[corcorpo].coluna == y) {
                         if (corcorpo == 0) {
                             printf(GREEN "X" RESET_COLOR);
-                        } else {
+                        }
+                        else {
                             switch (corcorpo % 6) {
-                                case 0: printf(RED "+" RESET_COLOR); break;
-                                case 1: printf(YELLOW "+" RESET_COLOR); break;
-                                case 2: printf(BLUE "+" RESET_COLOR); break;
-                                case 3: printf(MAGENTA "+" RESET_COLOR); break;
-                                case 4: printf(CIANO "+" RESET_COLOR); break;
-                                case 5: printf(GREEN "+" RESET_COLOR); break;
+                            case 0: printf(RED "+" RESET_COLOR); break;
+                            case 1: printf(YELLOW "+" RESET_COLOR); break;
+                            case 2: printf(BLUE "+" RESET_COLOR); break;
+                            case 3: printf(MAGENTA "+" RESET_COLOR); break;
+                            case 4: printf(CIANO "+" RESET_COLOR); break;
+                            case 5: printf(GREEN "+" RESET_COLOR); break;
                             }
                         }
                         isBody = true;
@@ -109,85 +176,93 @@ int main() {
                 if (!isBody) {
                     if (randfood[x][y]) {
                         printf(CIANO "0" RESET_COLOR);
-                    } else if (x == 0 || x == LIN - 1 || y == 0 || y == COL - 1) {
-                        printf(RED  "#" RESET_COLOR);    
-                    } else {
+                    }
+                    else if (x == 0 || x == LIN - 1 || y == 0 || y == COL - 1) {
+                        printf(RED  "#" RESET_COLOR);
+                    }
+                    else {
                         printf(GREEN " " RESET_COLOR);
                     }
                 }
             }
             printf("\n");
         }
-            while (teclado != 'w' && teclado != 'W' && teclado != 'S' && teclado != 's' && teclado != 'A' && teclado != 'a' && teclado != 'd' && teclado != 'D'){
-            printf (YELLOW "Pressione 'w', 's', 'd' ou 'a' para começar. \n");
-            teclado =  getch();
-            }
+        while (teclado != 'w' && teclado != 'W' && teclado != 'S' && teclado != 's' && teclado != 'A' && teclado != 'a' && teclado != 'd' && teclado != 'D') {
+            printf(YELLOW "Pressione 'w', 's', 'd' ou 'a' para começar. \n");
+            teclado = _getch();
+        }
+           //condição de vitória
+        if (score == 1430){
+            life = 0;
+            printf(MAGENTA "Parabéns %s! Você ganhou! \n",  nome);
+            return 0;
+        }
         // Resposta do teclado
-        if (colisao){
-            printf (CIANO "Você colidiu. Você tem %d vidas restantes. \n" RESET_COLOR, life);
+        if (colisao) {
+            printf(CIANO "Você colidiu. Você tem %d vidas restantes. \n" RESET_COLOR, life);
             colisao = false;
         }
-        printf (CIANO "Score: %d\n" RESET_COLOR, score);
+        printf(CIANO "Score de %s: %d\n" RESET_COLOR, nome, score);
 
         // Aguardar 0.4 segundos antes de verificar a entrada do teclado novamente
         Sleep(400);
 
         if (_kbhit()) {
-            teclado = getch();
+            teclado = _getch();
             switch (teclado) {
-                case 'W':
-                case 'w':
-                    if (cobra[0].linha > 0) {
-                        if(keystored == 's' || keystored == 'S'){
-                            break;
-                        }
-                        
-                         else{
+            case 'W':
+            case 'w':
+                if (cobra[0].linha > 0) {
+                    if (keystored == 's' || keystored == 'S') {
+                        break;
+                    }
+
+                    else {
                         key = 'w';
                         keystored = 'W';
-                        }
-
                     }
-                    break;
-                case 'S':
-                case 's':
-                    if (cobra[0].linha < LIN - 1) {
-                           if(keystored == 'w' || keystored == 'W'){
-                            break;
-                        }
-                        else{
+
+                }
+                break;
+            case 'S':
+            case 's':
+                if (cobra[0].linha < LIN - 1) {
+                    if (keystored == 'w' || keystored == 'W') {
+                        break;
+                    }
+                    else {
                         key = 's';
                         keystored = 's';
-                        }
                     }
-                    break;
-                case 'A':
-                case 'a':
-                    if (cobra[0].coluna > 0) {
-                           if(keystored == 'd' || keystored == 'D'){
-                            break;
-                        }
-                         else{
+                }
+                break;
+            case 'A':
+            case 'a':
+                if (cobra[0].coluna > 0) {
+                    if (keystored == 'd' || keystored == 'D') {
+                        break;
+                    }
+                    else {
                         key = 'a';
                         keystored = 'a';
-                        }
                     }
-                    break;
-                case 'D':
-                case 'd':
-                    if (cobra[0].coluna < COL - 1) {
-                           if(keystored == 'a' || keystored == 'A'){
-                            break;
-                        }
-                         else{
+                }
+                break;
+            case 'D':
+            case 'd':
+                if (cobra[0].coluna < COL - 1) {
+                    if (keystored == 'a' || keystored == 'A') {
+                        break;
+                    }
+                    else {
                         key = 'd';
                         keystored = 'd';
-                        }
-                        
                     }
-                    break;
-                default:
-                    break;
+
+                }
+                break;
+            default:
+                break;
             }
         }
 
@@ -217,11 +292,11 @@ int main() {
                 cobra[0].linha = LIN / 2;
                 cobra[0].coluna = COL / 2;
                 corpoSize = 0;
+                score = 0;
                 printf(CIANO "Voce colidiu, tente novamente. \n" RESET_COLOR);
                 teclado = 'o';
             }
         }
-         
         // Checagem de colisão com as bordas
         if (cobra[0].linha == 0 || cobra[0].linha == LIN - 1 || cobra[0].coluna == 0 || cobra[0].coluna == COL - 1) {
             colisao = true;
@@ -229,8 +304,9 @@ int main() {
             cobra[0].linha = LIN / 2;
             cobra[0].coluna = COL / 2;
             corpoSize = 0;
-             printf(CIANO "Voce colidiu, tente novamente. \n" RESET_COLOR);
-                teclado = 'o';
+            score = 0;
+            printf(CIANO "Voce colidiu, tente novamente. \n" RESET_COLOR);
+            teclado = 'o';
         }
         // Se comer a comida
         if (cobra[0].linha == food.posicao_vetor_linha && cobra[0].coluna == food.posicao_vetor_coluna) {
@@ -240,9 +316,9 @@ int main() {
             comida(cobra, corpoSize);
             randfood[food.posicao_vetor_linha][food.posicao_vetor_coluna] = true;
         }
-
         system(CLEAR_SCREEN);
     }
-    printf("Fim do jogo!\n");
+    printf(GREEN  "Fim do jogo!\n");
+    printf("Tempo decorrido: %d:%d:%d", horas, minutos, segundos);
     return 0;
 }
